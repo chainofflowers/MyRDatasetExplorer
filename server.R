@@ -235,6 +235,10 @@ shinyServer(function(input, output) {
         else {
             t <- paste0(input$DS,':',input$regY,' vs (',
                         paste0(input$regXvars, collapse=','), ')')
+
+            fit <<- lm(formula = as.formula(paste(input$regY, '~',
+                                                  paste0(input$regXvars,collapse='+'))),
+                       data = myDS)
             t
         }
     })
@@ -260,10 +264,6 @@ shinyServer(function(input, output) {
     output$multiLinearPlot <- renderPlot({
         if (input$DS=="" || is.null(input$regXvars)) NULL
         else {
-            fit <<- lm(formula = as.formula(paste(input$regY, '~',
-                                                  paste0(input$regXvars,collapse='+'))),
-                       data = myDS)
-
             # plot the residuals:
             par(mfrow=c(2,2))
             plot(fit)
