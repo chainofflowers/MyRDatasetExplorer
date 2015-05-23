@@ -235,14 +235,18 @@ shinyServer(function(input, output) {
         else {
             t <- paste0(input$DS,':',input$regY,' vs (',
                         paste0(input$regXvars, collapse=','), ')')
-
-            fit <<- lm(formula = as.formula(paste(input$regY, '~',
-                                                  paste0(input$regXvars,collapse='+'))),
-                       data = myDS)
             t
         }
     })
     output$YvsVars <- renderText(regY_name())
+
+    myFit <- reactive({
+        if (input$DS=="" || is.null(input$regXvars)) NULL
+        else
+            fit <<- lm(formula = as.formula(paste(input$regY, '~',
+                                                  paste0(input$regXvars,collapse='+'))),
+                       data = myDS)
+    })
 
     output$regYselector <- renderUI({
         if (input$DS=="") NULL
@@ -262,27 +266,27 @@ shinyServer(function(input, output) {
 
     # the multilinear regression plot:
     output$multiLinearPlot <- renderPlot({
-        if (input$DS=="" || is.null(input$regXvars)) NULL
+        if (is.null(myFit())) NULL
         else {
             # plot the residuals:
             par(mfrow=c(2,2))
-            plot(fit)
+            plot(myFit())
         }
     })
 
     # the model summary:
     output$fitSummary <- renderPrint({
-        if (input$DS=="" || is.null(input$regXvars)) 'No model defined yet'
-        else {
-            summary(fit)
-        }
+         if (is.null(myFit())) 'No model defined yet'
+         else {
+            summary(myFit())
+         }
     })
 
     # and the analysis of the variance table:
     output$anova <- renderPrint({
-        if (input$DS=="" || is.null(input$regXvars)) 'No model defined yet'
+        if (is.null(myFit())) 'No model defined yet'
         else {
-            anova(fit)
+            anova(myFit())
         }
     })
 })
